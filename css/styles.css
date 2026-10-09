@@ -128,9 +128,11 @@ Game
 .gameControls {
   display: flex;
   justify-content: flex-end;
+  gap: var(--spaceSm);
   margin-top: var(--spaceSm);
 }
 
+.pauseButton,
 .soundButton {
   padding: var(--spaceXs) var(--spaceMd);
   border: 1px solid var(--colorBorder);
@@ -150,6 +152,12 @@ Game
   color: var(--colorTextMuted);
 }
 
+.pauseButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pauseButton:focus-visible,
 .soundButton:focus-visible {
   outline: 3px solid var(--colorAccent);
   outline-offset: 2px;

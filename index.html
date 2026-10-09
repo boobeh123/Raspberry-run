@@ -21,6 +21,7 @@
       <canvas class="gameCanvas" aria-label="Raspberry Run game. Press Space or tap to start and to jump." tabindex="0"></canvas>
     </div>
     <div class="gameControls">
+      <button class="pauseButton" type="button" disabled>Pause</button>
       <button class="soundButton" type="button" aria-pressed="true">Sound <span class="soundState" aria-hidden="true">on</span></button>
     </div>
     <p class="scoreAnnouncer visuallyHidden" aria-live="polite"></p>
@@ -29,6 +30,7 @@
       <h2 id="howToHeading">How to play</h2>
       <ul class="howToList">
         <li><kbd>Space</kbd>, <kbd>↑</kbd>, or tap to jump. Hold for a higher jump.</li>
+        <li><kbd>P</kbd> or <kbd>Esc</kbd> to pause.</li>
         <li>Jump over the hot CPU chips.</li>
         <li>The CPU heats up as you run, and the game speeds up with it.</li>
         <li>Grab snowflakes to cool down. Hit 85 °C and you're thermal throttled.</li>

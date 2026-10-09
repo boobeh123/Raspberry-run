@@ -5,6 +5,7 @@ const canvas = document.querySelector('.gameCanvas');
 const scoreAnnouncer = document.querySelector('.scoreAnnouncer');
 const soundButton = document.querySelector('.soundButton');
 const soundState = document.querySelector('.soundState');
+const pauseButton = document.querySelector('.pauseButton');
 const ctx = canvas.getContext('2d');
 
 /**************************************************************
@@ -31,6 +32,7 @@ const THROTTLE_TEMP = 85;
 const HEAT_PER_SECOND = 0.9;
 const SNOW_COOLING = 10;
 
+const RESTART_DELAY_MS = 600; // ignore presses right after a crash, so mashing jump doesn't skip the score
 const BEST_SCORE_KEY = 'raspberryRunBest';
 const SOUND_OFF_KEY = 'raspberryRunSoundOff';
 
@@ -59,6 +61,7 @@ let bestScore = 0;
 let lastFrameTime = 0;
 let audioContext = null; // created on the first tap or key press; browsers block audio before that
 let isSoundOn = true;
+let gameOverAt = 0;
 
 /**************************************************************
 Helper functions
@@ -195,6 +198,19 @@ const updateSoundButton = () => {
 /**************************************************************
 Game logic
 ***************************************************************/
+// Every state change goes through here so the Pause button always matches the game
+const setGameState = (newState) => {
+  gameState = newState;
+  const canPause = newState === 'running' || newState === 'paused';
+  pauseButton.disabled = !canPause;
+  pauseButton.textContent = newState === 'paused' ? 'Resume' : 'Pause';
+};
+
+const togglePause = () => {
+  if (gameState === 'running') setGameState('paused');
+  else if (gameState === 'paused') setGameState('running');
+};
+
 const resetGame = () => {
   player = { y: GROUND_Y, velocityY: 0, isOnGround: true, squash: 0 };
   chips = [];
@@ -209,12 +225,13 @@ const resetGame = () => {
 
 const startGame = () => {
   resetGame();
-  gameState = 'running';
+  setGameState('running');
   scoreAnnouncer.textContent = '';
 };
 
 const endGame = (reason, soundName) => {
-  gameState = 'over';
+  setGameState('over');
+  gameOverAt = performance.now();
   crashReason = reason;
   SOUNDS[soundName]();
   const score = getScore();
@@ -484,7 +501,7 @@ const draw = () => {
       'Press Space or tap to start',
     ]);
   } else if (gameState === 'paused') {
-    drawOverlay('Paused', ['Press Space or tap to keep running']);
+    drawOverlay('Paused', ['Press Space, P, or tap to keep running']);
   } else if (gameState === 'over') {
     drawOverlay(crashReason, [
       `Score ${getScore()}  ·  Best ${bestScore}`,
@@ -510,8 +527,8 @@ const handlePress = () => {
   if (gameState === 'running') {
     jump();
   } else if (gameState === 'paused') {
-    gameState = 'running';
-  } else {
+    setGameState('running');
+  } else if (gameState === 'ready' || performance.now() - gameOverAt > RESTART_DELAY_MS) {
     startGame();
   }
 };
@@ -523,7 +540,13 @@ const handleRelease = () => {
 
 const isJumpKey = (event) => ['Space', 'ArrowUp', 'KeyW'].includes(event.code);
 
+const isPauseKey = (event) => ['KeyP', 'Escape'].includes(event.code);
+
 const handleKeyDown = (event) => {
+  if (isPauseKey(event)) {
+    togglePause();
+    return;
+  }
   if (!isJumpKey(event)) return;
   // Space on a focused button should press the button, not jump
   if (event.target.closest('button')) return;
@@ -549,8 +572,14 @@ const handleSoundToggle = () => {
   unlockAudio();
 };
 
+// Hand focus back to the game, so the next Space press jumps instead of pressing this button again
+const handlePauseClick = () => {
+  togglePause();
+  canvas.focus();
+};
+
 const handleVisibilityChange = () => {
-  if (document.hidden && gameState === 'running') gameState = 'paused';
+  if (document.hidden && gameState === 'running') setGameState('paused');
 };
 
 /**************************************************************
@@ -558,6 +587,7 @@ Event listeners
 ***************************************************************/
 document.addEventListener('keydown', handleKeyDown);
 soundButton.addEventListener('click', handleSoundToggle);
+pauseButton.addEventListener('click', handlePauseClick);
 document.addEventListener('keyup', handleKeyUp);
 canvas.addEventListener('pointerdown', handlePointerDown);
 canvas.addEventListener('pointerup', handleRelease);
@@ -571,6 +601,7 @@ bestScore = loadBestScore();
 isSoundOn = loadSoundSetting();
 updateSoundButton();
 resetGame();
+setGameState('ready');
 resizeCanvas();
 requestAnimationFrame((now) => {
   lastFrameTime = now;

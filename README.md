@@ -15,7 +15,8 @@ python3 -m http.server 8000
 Then visit http://localhost:8000.
 
 - **Space**, **↑**, **W**, or **tap** to jump. Hold for a higher jump; a quick tap still clears a chip.
-- The game pauses if you switch tabs.
+- **P** or **Esc** pauses (there's also a Pause button for phones), and the game pauses by itself if you switch tabs.
+- After a crash, presses are ignored for 0.6 seconds, so mashing jump doesn't skip past your score.
 - Your best score is saved in the browser.
 - Sound effects (jump, snowflake, crash, throttle alarm, new best) are synthesized with the Web Audio API, so there are no audio files. The **Sound** button turns them off and remembers your choice.
 
