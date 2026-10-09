@@ -1,0 +1,165 @@
+/**************************************************************
+Base
+***************************************************************/
+:root {
+  /* Page */
+  --colorBg: #f4f5f7;
+  --colorSurface: #ffffff;
+  --colorText: #1b1f27;
+  --colorTextMuted: #5a6170;
+  --colorBorder: #e2e5ea;
+  --colorAccent: #c51a4a;
+
+  /* Game: read by js/game.js, so the canvas uses the same design tokens */
+  --gameSkyCool: #dbeafe;
+  --gameSkyHot: #fed7aa;
+  --gameBoard: #14532d;
+  --gameTrace: #22c55e;
+  --gameBerry: #c51a4a;
+  --gameBerryDark: #8f1236;
+  --gameSeed: #f9c8d6;
+  --gameLeaf: #16a34a;
+  --gameChip: #374151;
+  --gamePin: #9ca3af;
+  --gameSnow: #0891b2;
+  --gameInk: #1b1f27;
+  --gameTempOk: #16a34a;
+  --gameTempWarm: #d97706;
+  --gameTempHot: #dc2626;
+
+  --fontBody: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --spaceXs: 0.25rem;
+  --spaceSm: 0.5rem;
+  --spaceMd: 1rem;
+  --spaceLg: 1.5rem;
+
+  --radius: 12px;
+  --contentWidth: 960px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--colorBg);
+  color: var(--colorText);
+  font-family: var(--fontBody);
+  line-height: 1.5;
+}
+
+/**************************************************************
+Utilities
+***************************************************************/
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/**************************************************************
+Components
+***************************************************************/
+kbd {
+  padding: 0 var(--spaceXs);
+  border: 1px solid var(--colorBorder);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--colorSurface);
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+/**************************************************************
+Header
+***************************************************************/
+.siteHeader {
+  max-width: var(--contentWidth);
+  margin: 0 auto;
+  padding: var(--spaceLg) var(--spaceMd) var(--spaceMd);
+  border-top: 4px solid var(--colorAccent);
+}
+
+.siteTitle {
+  margin: 0;
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+}
+
+.tagline {
+  margin: 0;
+  color: var(--colorTextMuted);
+}
+
+/**************************************************************
+Game
+***************************************************************/
+.gameSection {
+  max-width: var(--contentWidth);
+  margin: 0 auto;
+  padding: 0 var(--spaceMd);
+}
+
+.gameFrame {
+  overflow: hidden;
+  border: 1px solid var(--colorBorder);
+  border-radius: var(--radius);
+  background: var(--colorSurface);
+}
+
+.gameCanvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  touch-action: manipulation; /* no double-tap zoom while jumping on phones */
+  cursor: pointer;
+}
+
+.gameCanvas:focus-visible {
+  outline: 3px solid var(--colorAccent);
+  outline-offset: -3px;
+}
+
+/**************************************************************
+How to play
+***************************************************************/
+.howTo h2 {
+  margin: var(--spaceLg) 0 var(--spaceSm);
+  font-size: 1.125rem;
+}
+
+.howToList {
+  margin: 0;
+  padding-left: var(--spaceLg);
+  color: var(--colorTextMuted);
+}
+
+/**************************************************************
+Footer
+***************************************************************/
+.siteFooter {
+  max-width: var(--contentWidth);
+  margin: 0 auto;
+  padding: var(--spaceLg) var(--spaceMd);
+  color: var(--colorTextMuted);
+  font-size: 0.875rem;
+}
+
+/**************************************************************
+Media queries
+***************************************************************/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

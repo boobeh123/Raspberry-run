@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A tiny endless runner: jump hot chips, grab snowflakes, and keep the CPU under 85 °C.">
+  <title>Raspberry Run</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/game.js" defer></script>
+</head>
+<body>
+  <header class="siteHeader">
+    <h1 class="siteTitle">Raspberry Run</h1>
+    <p class="tagline">Keep the CPU cool. Don't get throttled.</p>
+  </header>
+
+  <main class="gameSection">
+    <div class="gameFrame">
+      <canvas class="gameCanvas" aria-label="Raspberry Run game. Press Space or tap to start and to jump." tabindex="0"></canvas>
+    </div>
+    <p class="scoreAnnouncer visuallyHidden" aria-live="polite"></p>
+
+    <section class="howTo" aria-labelledby="howToHeading">
+      <h2 id="howToHeading">How to play</h2>
+      <ul class="howToList">
+        <li><kbd>Space</kbd>, <kbd>↑</kbd>, or tap to jump. Hold for a higher jump.</li>
+        <li>Jump over the hot CPU chips.</li>
+        <li>The CPU heats up as you run, and the game speeds up with it.</li>
+        <li>Grab snowflakes to cool down. Hit 85 °C and you're thermal throttled.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="siteFooter">
+    <p>Made on a Raspberry Pi 5</p>
+  </footer>
+</body>
+</html>
