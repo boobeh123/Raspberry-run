@@ -1,5 +1,7 @@
 # Raspberry Run
 
+**Play it: https://raspberry-run.netlify.app**
+
 A tiny endless runner made on a Raspberry Pi 5. You're a raspberry running across a circuit board. Jump the hot CPU chips, but watch the temperature: the CPU heats up the longer you run, and the game speeds up with it. Grab snowflakes to cool down. Hit 85 °C and you're thermal throttled.
 
 ## Play
@@ -33,4 +35,4 @@ Playtested in headless Chromium with a small bot pressing real Space keys: it su
 
 ## Deploying
 
-It's a static site, so it can go on Netlify as-is (publish directory: the project root, no build command).
+Live on Netlify at https://raspberry-run.netlify.app. It's a static site: publish directory is the project root, no build command.
