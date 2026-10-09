@@ -10,8 +10,11 @@ const ctx = canvas.getContext('2d');
 /**************************************************************
 Settings
 ***************************************************************/
-// The game is drawn on a fixed 900x300 stage and scaled to fit the page
-const WIDTH = 900;
+// The game is drawn on a 300-unit-tall stage and scaled to fit the page. Phones get a narrower
+// stage so the game shows up bigger; the breakpoint must match the media query in styles.css.
+const WIDE_STAGE_WIDTH = 900;
+const NARROW_STAGE_WIDTH = 560;
+const narrowScreen = window.matchMedia('(max-width: 600px)');
 const HEIGHT = 300;
 const GROUND_Y = 250;
 
@@ -41,6 +44,7 @@ const COLOR_NAMES = [
 State
 ***************************************************************/
 let colors = {};
+let stageWidth = WIDE_STAGE_WIDTH;
 let gameState = 'ready'; // ready | running | paused | over
 let player;
 let chips;
@@ -133,8 +137,9 @@ const touchesSnowflake = (flake) => {
 
 // Match the canvas's pixel size to its on-screen size so it stays sharp on any screen
 const resizeCanvas = () => {
-  const scale = (canvas.clientWidth / WIDTH) * (window.devicePixelRatio || 1);
-  canvas.width = Math.round(WIDTH * scale);
+  stageWidth = narrowScreen.matches ? NARROW_STAGE_WIDTH : WIDE_STAGE_WIDTH;
+  const scale = (canvas.clientWidth / stageWidth) * (window.devicePixelRatio || 1);
+  canvas.width = Math.round(stageWidth * scale);
   canvas.height = Math.round(HEIGHT * scale);
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
   draw();
@@ -231,11 +236,11 @@ const jump = () => {
 
 const spawnChip = () => {
   const width = randomBetween(34, 70);
-  chips.push({ x: WIDTH + 20, width, height: randomBetween(30, 52) });
+  chips.push({ x: stageWidth + 20, width, height: randomBetween(30, 52) });
 };
 
 const spawnSnowflake = () => {
-  snowflakes.push({ x: WIDTH + 20, y: GROUND_Y - randomBetween(80, 150), spin: 0 });
+  snowflakes.push({ x: stageWidth + 20, y: GROUND_Y - randomBetween(80, 150), spin: 0 });
 };
 
 const update = (seconds) => {
@@ -299,14 +304,14 @@ Drawing
 const drawBackground = () => {
   const heat = clamp((temp - MIN_TEMP) / (THROTTLE_TEMP - MIN_TEMP), 0, 1);
   ctx.fillStyle = mixColors(colors.gameSkyCool, colors.gameSkyHot, heat);
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.fillRect(0, 0, stageWidth, HEIGHT);
 
   // Circuit board ground with scrolling traces
   ctx.fillStyle = colors.gameBoard;
-  ctx.fillRect(0, GROUND_Y, WIDTH, HEIGHT - GROUND_Y);
+  ctx.fillRect(0, GROUND_Y, stageWidth, HEIGHT - GROUND_Y);
   ctx.strokeStyle = colors.gameTrace;
   ctx.lineWidth = 2;
-  for (let x = -groundOffset; x < WIDTH + 60; x += 60) {
+  for (let x = -groundOffset; x < stageWidth + 60; x += 60) {
     ctx.beginPath();
     ctx.moveTo(x, GROUND_Y + 14);
     ctx.lineTo(x + 24, GROUND_Y + 14);
@@ -438,7 +443,7 @@ const drawHud = () => {
 
   // Thermometer bar
   const barWidth = 170;
-  const barX = WIDTH - barWidth - 16;
+  const barX = stageWidth - barWidth - 16;
   const fill = clamp((temp - MIN_TEMP) / (THROTTLE_TEMP - MIN_TEMP), 0, 1);
   let barColor = colors.gameTempOk;
   if (temp >= 70) barColor = colors.gameTempHot;
@@ -446,7 +451,7 @@ const drawHud = () => {
 
   ctx.textAlign = 'right';
   ctx.font = '600 16px system-ui, sans-serif';
-  ctx.fillText(`CPU ${temp.toFixed(0)} °C`, WIDTH - 16, 14);
+  ctx.fillText(`CPU ${temp.toFixed(0)} °C`, stageWidth - 16, 14);
   ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
   ctx.fillRect(barX, 40, barWidth, 10);
   ctx.fillStyle = barColor;
@@ -455,14 +460,14 @@ const drawHud = () => {
 
 const drawOverlay = (title, lines) => {
   ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.fillRect(0, 0, stageWidth, HEIGHT);
   ctx.fillStyle = colors.gameInk;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = '700 34px system-ui, sans-serif';
-  ctx.fillText(title, WIDTH / 2, 100);
+  ctx.fillText(title, stageWidth / 2, 100);
   ctx.font = '18px system-ui, sans-serif';
-  lines.forEach((line, index) => ctx.fillText(line, WIDTH / 2, 150 + index * 30));
+  lines.forEach((line, index) => ctx.fillText(line, stageWidth / 2, 150 + index * 30));
 };
 
 const draw = () => {

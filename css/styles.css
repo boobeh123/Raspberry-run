@@ -183,6 +183,13 @@ Footer
 /**************************************************************
 Media queries
 ***************************************************************/
+/* Narrower game stage on phones; matches NARROW_STAGE_WIDTH / HEIGHT in js/game.js */
+@media (max-width: 600px) {
+  .gameCanvas {
+    aspect-ratio: 560 / 300;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
