@@ -125,6 +125,36 @@ Game
   outline-offset: -3px;
 }
 
+.gameControls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spaceSm);
+}
+
+.soundButton {
+  padding: var(--spaceXs) var(--spaceMd);
+  border: 1px solid var(--colorBorder);
+  border-radius: 999px;
+  background: var(--colorSurface);
+  color: var(--colorText);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.soundState {
+  font-weight: 600;
+}
+
+.soundButton[aria-pressed="false"] {
+  color: var(--colorTextMuted);
+}
+
+.soundButton:focus-visible {
+  outline: 3px solid var(--colorAccent);
+  outline-offset: 2px;
+}
+
 /**************************************************************
 How to play
 ***************************************************************/

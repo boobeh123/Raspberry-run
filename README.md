@@ -15,6 +15,7 @@ Then visit http://localhost:8000.
 - **Space**, **↑**, **W**, or **tap** to jump. Hold for a higher jump; a quick tap still clears a chip.
 - The game pauses if you switch tabs.
 - Your best score is saved in the browser.
+- Sound effects (jump, snowflake, crash, throttle alarm, new best) are synthesized with the Web Audio API, so there are no audio files. The **Sound** button turns them off and remembers your choice.
 
 ## How it works
 

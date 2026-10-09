@@ -3,6 +3,8 @@ DOM selectors
 ***************************************************************/
 const canvas = document.querySelector('.gameCanvas');
 const scoreAnnouncer = document.querySelector('.scoreAnnouncer');
+const soundButton = document.querySelector('.soundButton');
+const soundState = document.querySelector('.soundState');
 const ctx = canvas.getContext('2d');
 
 /**************************************************************
@@ -27,6 +29,7 @@ const HEAT_PER_SECOND = 0.9;
 const SNOW_COOLING = 10;
 
 const BEST_SCORE_KEY = 'raspberryRunBest';
+const SOUND_OFF_KEY = 'raspberryRunSoundOff';
 
 const COLOR_NAMES = [
   'gameSkyCool', 'gameSkyHot', 'gameBoard', 'gameTrace', 'gameBerry', 'gameBerryDark',
@@ -50,6 +53,8 @@ let nextSnowIn;
 let crashReason;
 let bestScore = 0;
 let lastFrameTime = 0;
+let audioContext = null; // created on the first tap or key press; browsers block audio before that
+let isSoundOn = true;
 
 /**************************************************************
 Helper functions
@@ -90,6 +95,22 @@ const saveBestScore = (score) => {
   }
 };
 
+const loadSoundSetting = () => {
+  try {
+    return localStorage.getItem(SOUND_OFF_KEY) !== 'true';
+  } catch {
+    return true;
+  }
+};
+
+const saveSoundSetting = (isOn) => {
+  try {
+    localStorage.setItem(SOUND_OFF_KEY, String(!isOn));
+  } catch {
+    // Setting just won't be remembered this time
+  }
+};
+
 const getScore = () => Math.floor(distance / 10);
 
 // Hotter CPU = faster game: double speed at the throttle temperature
@@ -120,6 +141,53 @@ const resizeCanvas = () => {
 };
 
 /**************************************************************
+Sound
+***************************************************************/
+// Every sound is a short synthesized tone, so there are no audio files to load
+const playTone = ({ from, to = from, duration, wave = 'square', volume = 0.06, delay = 0 }) => {
+  if (!isSoundOn || !audioContext) return;
+  const start = audioContext.currentTime + delay;
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+
+  oscillator.type = wave;
+  oscillator.frequency.setValueAtTime(from, start);
+  oscillator.frequency.exponentialRampToValueAtTime(to, start + duration);
+  // Fade out instead of stopping dead, which would click
+  gain.gain.setValueAtTime(volume, start);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+  oscillator.connect(gain).connect(audioContext.destination);
+  oscillator.start(start);
+  oscillator.stop(start + duration);
+};
+
+const SOUNDS = {
+  jump: () => playTone({ from: 420, to: 700, duration: 0.12 }),
+  snowflake: () => {
+    playTone({ from: 1320, duration: 0.09, wave: 'sine', volume: 0.08 });
+    playTone({ from: 1760, duration: 0.14, wave: 'sine', volume: 0.08, delay: 0.08 });
+  },
+  crash: () => playTone({ from: 220, to: 55, duration: 0.4, wave: 'sawtooth', volume: 0.07 }),
+  throttle: () => [0, 0.18, 0.36].forEach((delay) => playTone({ from: 880, to: 660, duration: 0.14, delay })),
+  newBest: () => [523, 659, 784, 1047].forEach((note, index) =>
+    playTone({ from: note, duration: 0.12, wave: 'triangle', volume: 0.08, delay: 0.45 + index * 0.1 })
+  ),
+};
+
+const unlockAudio = () => {
+  if (audioContext) return;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (AudioContextClass) audioContext = new AudioContextClass();
+};
+
+// The label stays "Sound"; aria-pressed tells screen readers the state, and the on/off tag shows it visually
+const updateSoundButton = () => {
+  soundButton.setAttribute('aria-pressed', String(isSoundOn));
+  soundState.textContent = isSoundOn ? 'on' : 'off';
+};
+
+/**************************************************************
 Game logic
 ***************************************************************/
 const resetGame = () => {
@@ -140,14 +208,16 @@ const startGame = () => {
   scoreAnnouncer.textContent = '';
 };
 
-const endGame = (reason) => {
+const endGame = (reason, soundName) => {
   gameState = 'over';
   crashReason = reason;
+  SOUNDS[soundName]();
   const score = getScore();
   const isNewBest = score > bestScore;
   if (isNewBest) {
     bestScore = score;
     saveBestScore(score);
+    SOUNDS.newBest();
   }
   scoreAnnouncer.textContent = `${reason} Score ${score}.${isNewBest ? ' New best!' : ''}`;
 };
@@ -156,6 +226,7 @@ const jump = () => {
   if (!player.isOnGround) return;
   player.velocityY = JUMP_VELOCITY;
   player.isOnGround = false;
+  SOUNDS.jump();
 };
 
 const spawnChip = () => {
@@ -171,7 +242,7 @@ const update = (seconds) => {
   // The CPU heats up the longer you run
   temp = Math.max(MIN_TEMP, temp + HEAT_PER_SECOND * seconds);
   if (temp >= THROTTLE_TEMP) {
-    endGame('Thermal throttled at 85 °C!');
+    endGame('Thermal throttled at 85 °C!', 'throttle');
     return;
   }
 
@@ -214,11 +285,12 @@ const update = (seconds) => {
 
   const collected = snowflakes.filter(touchesSnowflake);
   temp = Math.max(MIN_TEMP, temp - collected.length * SNOW_COOLING);
+  if (collected.length > 0) SOUNDS.snowflake();
 
   chips = chips.filter((chip) => chip.x + chip.width > -20);
   snowflakes = snowflakes.filter((flake) => flake.x > -20 && !collected.includes(flake));
 
-  if (chips.some(hitsChip)) endGame('Crashed into a hot chip!');
+  if (chips.some(hitsChip)) endGame('Crashed into a hot chip!', 'crash');
 };
 
 /**************************************************************
@@ -429,6 +501,7 @@ const frame = (now) => {
 Input handlers
 ***************************************************************/
 const handlePress = () => {
+  unlockAudio();
   if (gameState === 'running') {
     jump();
   } else if (gameState === 'paused') {
@@ -447,6 +520,8 @@ const isJumpKey = (event) => ['Space', 'ArrowUp', 'KeyW'].includes(event.code);
 
 const handleKeyDown = (event) => {
   if (!isJumpKey(event)) return;
+  // Space on a focused button should press the button, not jump
+  if (event.target.closest('button')) return;
   event.preventDefault(); // Space would otherwise scroll the page
   if (event.repeat) return;
   handlePress();
@@ -462,6 +537,13 @@ const handlePointerDown = (event) => {
   handlePress();
 };
 
+const handleSoundToggle = () => {
+  isSoundOn = !isSoundOn;
+  saveSoundSetting(isSoundOn);
+  updateSoundButton();
+  unlockAudio();
+};
+
 const handleVisibilityChange = () => {
   if (document.hidden && gameState === 'running') gameState = 'paused';
 };
@@ -470,6 +552,7 @@ const handleVisibilityChange = () => {
 Event listeners
 ***************************************************************/
 document.addEventListener('keydown', handleKeyDown);
+soundButton.addEventListener('click', handleSoundToggle);
 document.addEventListener('keyup', handleKeyUp);
 canvas.addEventListener('pointerdown', handlePointerDown);
 canvas.addEventListener('pointerup', handleRelease);
@@ -480,6 +563,8 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rea
 
 readColors();
 bestScore = loadBestScore();
+isSoundOn = loadSoundSetting();
+updateSoundButton();
 resetGame();
 resizeCanvas();
 requestAnimationFrame((now) => {
